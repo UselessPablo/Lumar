@@ -1,0 +1,72 @@
+import React, { useEffect, useState } from 'react';
+import { Box, Typography, Button } from '@mui/material';
+import { ref, get } from 'firebase/database';
+import { db } from './firebaseConfig';
+import { useNavigate } from 'react-router-dom';
+
+function Estadisticas() {
+    const [totalVentasDiarias, setTotalVentasDiarias] = useState(0);
+    const [totalVentasMensuales, setTotalVentasMensuales] = useState(0);
+    const [acumuladoHoy, setAcumuladoHoy] = useState(0);
+    const fechaActual = new Date();
+    const mesActual = fechaActual.toISOString().slice(0, 7); // 'YYYY-MM'
+    const fechaHoy = fechaActual.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const cargarEstadisticas = async () => {
+            const ventasRef = ref(db, 'ventas');
+            const acumuladoMensualRef = ref(db, `acumuladoMensual/${mesActual}`);
+
+            const ventasSnapshot = await get(ventasRef);
+            if (ventasSnapshot.exists()) {
+                const ventas = Object.values(ventasSnapshot.val());
+
+                // Filtrar y calcular ventas del día
+                const ventasDelDia = ventas.filter((venta) => venta.fecha === fechaHoy);
+                const totalDelDia = ventasDelDia.reduce((total, venta) => total + venta.totalVenta, 0);
+                setTotalVentasDiarias(totalDelDia);
+
+                // Calcular acumulado hasta hoy
+                const ventasHastaHoy = ventas.filter((venta) => venta.fecha <= fechaHoy);
+                const totalHastaHoy = ventasHastaHoy.reduce((total, venta) => total + venta.totalVenta, 0);
+                setAcumuladoHoy(totalHastaHoy);
+            }
+
+            // Obtener acumulado mensual
+            const acumuladoMensualSnapshot = await get(acumuladoMensualRef);
+            if (acumuladoMensualSnapshot.exists()) {
+                setTotalVentasMensuales(acumuladoMensualSnapshot.val());
+            }
+        };
+
+        cargarEstadisticas();
+    }, [mesActual, fechaHoy]);
+
+    return (
+        <Box sx={{ mt: 4 }}>
+            <Typography textAlign='center' variant="h4" sx={{ mb: 3,mt:3 }}>Estadísticas de Ventas</Typography>
+            <Typography textAlign='right' sx={{mr:4,mt:2}} variant="h6">Fecha: {fechaHoy}</Typography>
+            <Typography sx={{mt:5, ml:2}} variant="h6">Total ventas diarias: ${totalVentasDiarias.toFixed(2)}</Typography>
+            <Typography sx={{ mt: 1, ml: 3 }} variant="h6">Acumulado mensual: ${totalVentasMensuales.toFixed(2)}</Typography>
+            <Typography sx={{ mt: 1, ml: 4 }} variant="h6">Acumulado hasta hoy: ${acumuladoHoy.toFixed(2)}</Typography>
+
+            <Button
+                variant="contained"
+                color="warning"
+                onClick={() => navigate(-1)} // Volver a la página anterior
+                sx={{
+                    position: 'fixed',
+                    bottom: 16,
+                    right: 16,
+                }}
+            >
+                Volver
+            </Button>
+        </Box>
+    );
+}
+
+export default Estadisticas;
+
+
