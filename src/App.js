@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Box, Typography, Container, Button, TextField, Snackbar, Grid } from '@mui/material';
+import { Box, Typography, Container, Button, TextField, Snackbar, Grid, Avatar } from '@mui/material';
 import Stock from './Stock';
 import { useNavigate } from 'react-router-dom';
+import foto from './/IMG_20221031_211846.jpg'
 
 function App() {
   const [usuario, setUsuario] = useState('');
@@ -11,10 +12,25 @@ function App() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const navigate = useNavigate();
 
+  // Lista de mensajes aleatorios para el inicio de sesión
+  const mensajesBienvenida = [
+    '¡Deberías caminar más, te noto más gordito!',
+    'Dormir la siesta es bueno.',
+    'Recuerda comprar sahumerios para Pablo.',
+    'Recuerda llamar a Ale.',
+    'Buenos días, hoy va a llover.',
+  ];
+
+  // Función para obtener un mensaje aleatorio
+  const obtenerMensajeAleatorio = () => {
+    const indiceAleatorio = Math.floor(Math.random() * mensajesBienvenida.length);
+    return mensajesBienvenida[indiceAleatorio];
+  };
+
   const handleLogin = () => {
     if (usuario === 'ruben' && contraseña === 'ñandu1234') {
       setUsuarioLogueado(true);
-      setMensaje('Inicio de sesión exitoso');
+      setMensaje(obtenerMensajeAleatorio());  // Establece un mensaje aleatorio al iniciar sesión
     } else {
       setMensaje('Usuario o contraseña incorrectos');
     }
@@ -83,8 +99,15 @@ function App() {
             </Grid>
           ) : (
             <Grid item xs={12} sm={8} md={6} lg={4}>
-              <Typography variant="h5" sx={{ mb: 2 }}>
-                Bienvenido, Rubén
+              <Typography variant="h5" sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                {/* Avatar al lado del texto */}
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Avatar sx={{ width: 40, height: 40, mr: 2 }} alt="Rubén" src={foto} />
+                  <Typography>Bienvenido, Rubén</Typography>
+                </Box>
+                <Typography variant="h6" sx={{ ml: 2, fontStyle: 'italic', color: 'gray' }}>
+                  {mensaje}
+                </Typography>
               </Typography>
               <Button
                 onClick={handleLogout}
@@ -142,4 +165,3 @@ function App() {
 }
 
 export default App;
-

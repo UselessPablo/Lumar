@@ -204,7 +204,7 @@ function Ventas() {
                     </Typography>
                 </Box>
 
-                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mt: 3, mb:4 }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mt: 3, mb:4, ml:45 }}>
                     <Button
                         variant="contained"
                         color="success"
