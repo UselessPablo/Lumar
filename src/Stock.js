@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, TextField, Button, List, ListItem, ListItemText, Dialog, DialogActions, DialogContent, DialogTitle, Snackbar } from '@mui/material';
+import {
+    Box,
+    Typography,
+    TextField,
+    Button,
+    List,
+    ListItem,
+    ListItemText,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Snackbar,
+    Grid,
+} from '@mui/material';
 import { ref, get, set, remove } from 'firebase/database';
 import { db } from './firebaseConfig';
 import { styled } from '@mui/system';
@@ -15,14 +29,13 @@ function Stock() {
     const [productoSeleccionado, setProductoSeleccionado] = useState(null);
     const [alertaStock, setAlertaStock] = useState(false);
     const [mensajeAlerta, setMensajeAlerta] = useState('');
+    const [productosConAlerta, setProductosConAlerta] = useState([]);
 
     const cargarProductos = async () => {
         const productosRef = ref(db, 'productos');
         const productosSnapshot = await get(productosRef);
         const productosData = productosSnapshot.exists() ? productosSnapshot.val() : {};
         setProductos(Object.values(productosData));
-
-        // Verificar stock bajo o excedente
         verificarStockBajo(Object.values(productosData));
     };
 
@@ -31,6 +44,7 @@ function Stock() {
     }, []);
 
     const guardarProducto = async () => {
+        if (!nombre) return; // Validar que el nombre no esté vacío
         const nuevoProducto = {
             nombre,
             stock: Number(stock),
@@ -39,20 +53,19 @@ function Stock() {
             stockMinimo: Number(stockMinimo),
         };
         await set(ref(db, `productos/${nombre}`), nuevoProducto);
-        const nuevosProductos = [...productos, nuevoProducto];
-        setProductos(nuevosProductos);
+        setProductos([...productos, nuevoProducto]);
         setNombre('');
         setStock('');
         setPrecioCompra('');
         setPrecioVenta('');
         setStockMinimo('');
-        verificarStockBajo(nuevosProductos);
+        verificarStockBajo([...productos, nuevoProducto]);
     };
 
     const eliminarProducto = async (nombreProducto) => {
-        await remove(ref(db, `productos/${nombreProducto}`)); // Eliminar el producto de la base de datos
+        await remove(ref(db, `productos/${nombreProducto}`));
         const productosActualizados = productos.filter((producto) => producto.nombre !== nombreProducto);
-        setProductos(productosActualizados); // Actualizar el estado local
+        setProductos(productosActualizados);
         verificarStockBajo(productosActualizados);
     };
 
@@ -85,20 +98,26 @@ function Stock() {
         }
     };
 
+
     const verificarStockBajo = (productos) => {
-        productos.forEach((producto) => {
-            if (producto.stock <= producto.stockMinimo) {
+        const productosConStockBajo = productos.filter(
+            (producto) => producto.stock <= producto.stockMinimo
+        );
+
+        productosConStockBajo.forEach((producto) => {
+            if (!productosConAlerta.includes(producto.nombre)) {
                 setMensajeAlerta(`Stock bajo: ${producto.nombre} (Stock: ${producto.stock})`);
                 setAlertaStock(true);
-            } else if (producto.stock > producto.stockMinimo) {
-                setMensajeAlerta(`Stock suficiente: ${producto.nombre} (Stock: ${producto.stock})`);
-                setAlertaStock(true);
+                setProductosConAlerta((prev) => [...prev, producto.nombre]);
             }
         });
     };
 
+
     const productosFiltrados = productos.filter((producto) =>
-        producto.nombre.toLowerCase().includes(filtro.toLowerCase())
+        producto.nombre && typeof producto.nombre === 'string'
+            ? producto.nombre.toLowerCase().includes(filtro.toLowerCase())
+            : false
     );
 
     const AlertSnackbar = styled(Snackbar)({
@@ -110,10 +129,8 @@ function Stock() {
     });
 
     return (
-        <Box sx={{width:'100%'}}>
+        <Box sx={{ width: '100%' }}>
             <Typography variant="h5" textAlign="center" sx={{ mb: 2 }}>Gestión de Stock</Typography>
-
-            {/* Barra de búsqueda */}
             <TextField
                 label="Buscar producto"
                 fullWidth
@@ -123,57 +140,61 @@ function Stock() {
                 onChange={(e) => setFiltro(e.target.value)}
             />
 
-            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                <TextField label="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} />
-                <TextField type="number" label="Stock" value={stock} onChange={(e) => setStock(e.target.value)} />
-                <TextField type="number" label="Precio de Compra" value={precioCompra} onChange={(e) => setPrecioCompra(e.target.value)} />
-                <TextField type="number" label="Precio de Venta" value={precioVenta} onChange={(e) => setPrecioVenta(e.target.value)} />
-                <TextField type="number" label="Stock Mínimo" value={stockMinimo} onChange={(e) => setStockMinimo(e.target.value)} />
-                <Button sx={{ml:1}} onClick={guardarProducto} variant="contained" color="primary">Agregar</Button>
-            </Box>
+            <Grid
+                container
+                spacing={2}
+                justifyContent="center"
+                sx={{ mb: 2 }}
+                onKeyDown={(e) => e.key === 'Enter' && guardarProducto()} // Confirmar con Enter
+            >
+                <Grid item xs={12} sm={4}>
+                    <TextField label="Nombre" fullWidth value={nombre} onChange={(e) => setNombre(e.target.value)} />
+                </Grid>
+                <Grid item xs={12} sm={2}>
+                    <TextField type="number" label="Stock" fullWidth value={stock} onChange={(e) => setStock(e.target.value)} />
+                </Grid>
+                <Grid item xs={12} sm={2}>
+                    <TextField type="number" label="Precio de Compra" fullWidth value={precioCompra} onChange={(e) => setPrecioCompra(e.target.value)} />
+                </Grid>
+                <Grid item xs={12} sm={2}>
+                    <TextField type="number" label="Precio de Venta" fullWidth value={precioVenta} onChange={(e) => setPrecioVenta(e.target.value)} />
+                </Grid>
+                <Grid item xs={12} sm={2}>
+                    <TextField type="number" label="Stock Mínimo" fullWidth value={stockMinimo} onChange={(e) => setStockMinimo(e.target.value)} />
+                </Grid>
+                <Grid item xs={12} sm={2}>
+                    <Button sx={{ height: '100%' }} onClick={guardarProducto} variant="contained" color="primary">Agregar</Button>
+                </Grid>
+            </Grid>
 
             <List>
                 {productosFiltrados.map((producto, index) => (
-                    <ListItem
-                        key={index}
-                        sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                    >
+                    <ListItem key={index} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <ListItemText
                             primary={producto.nombre}
                             secondary={`Stock: ${producto.stock}, Precio Compra: $${producto.precioCompra}, Precio Venta: $${producto.precioVenta}, Stock Mínimo: ${producto.stockMinimo}`}
-                            primaryTypographyProps={{
-                                fontWeight: 'bold',
-                                fontSize: '1.1rem',
-                            }}
-                            secondaryTypographyProps={{
-                                fontWeight: 'semibold',
-                                fontSize: '1rem',
-                                color: 'blue',
-                            }}
                         />
-                        <Button
-                            variant="outlined"
-                            color="primary"
-                            onClick={() => abrirDialogoEditar(producto)}
-                        >
-                            Editar
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            color="error"
-                            onClick={() => eliminarProducto(producto.nombre)}
-                        >
-                            Eliminar
-                        </Button>
+                        <Button variant="outlined" color="primary" onClick={() => abrirDialogoEditar(producto)}>Editar</Button>
+                        <Button variant="outlined" color="error" onClick={() => eliminarProducto(producto.nombre)}>Eliminar</Button>
                     </ListItem>
                 ))}
             </List>
 
-            {/* Diálogo para editar producto */}
             {productoSeleccionado && (
                 <Dialog open={true} onClose={cerrarDialogoEditar}>
                     <DialogTitle>Editar Producto</DialogTitle>
-                    <DialogContent>
+                    <DialogContent
+                        onKeyDown={(e) => e.key === 'Enter' && guardarCambios()} // Confirmar con Enter
+                    >
+                        <TextField
+                            label="Nombre"
+                            fullWidth
+                            value={productoSeleccionado.nombre}
+                            onChange={(e) =>
+                                setProductoSeleccionado({ ...productoSeleccionado, nombre: e.target.value })
+                            }
+                            sx={{ mb: 2 }}
+                        />
                         <TextField
                             label="Stock"
                             type="number"
@@ -222,7 +243,6 @@ function Stock() {
                 </Dialog>
             )}
 
-            {/* Snackbar de alerta de stock bajo */}
             <AlertSnackbar
                 open={alertaStock}
                 autoHideDuration={6000}

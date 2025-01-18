@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, TextField, Button, List, ListItem, ListItemText, Snackbar } from '@mui/material';
+import { Box, Typography, TextField, Button, List, ListItem, ListItemText, Snackbar, Container } from '@mui/material';
 import { ref, get, set, push } from 'firebase/database';
 import { db } from './firebaseConfig';
 import { useNavigate } from 'react-router-dom';
@@ -138,75 +138,90 @@ function Ventas() {
     const subtotal = itemsSeleccionados.reduce((total, item) => total + item.cantidad * item.precioVenta, 0);
 
     const productosFiltrados = productos.filter((producto) =>
-        producto.nombre.toLowerCase().includes(filtro.toLowerCase())
+        typeof producto.nombre === 'string' && producto.nombre.toLowerCase().includes(filtro.toLowerCase())
     );
+    const manejarClick = () => {
+        imprimirTicket();
+        confirmarVenta();
+    };
 
     return (
-        <Box>
-            <Typography variant="h4" textAlign="center" sx={{ mb: 3, mt:4 }}>Lumar</Typography>
-            <Typography variant="h5" textAlign="center" sx={{ mb: 3, mt: 4 }}>Gestión de Ventas</Typography>
-            <TextField
-                label="Buscar producto"
-                fullWidth
-                variant="outlined"
-                sx={{ mb: 2 }}
-                value={filtro}
-                onChange={(e) => setFiltro(e.target.value)}
-            />
+        <Container maxWidth='lg'>
+            <Box sx={{ mt: 4 }}>
+                <Typography variant="h4" textAlign="center" sx={{ mb: 3 }}>Lumar</Typography>
+                <Typography variant="h5" textAlign="center" sx={{ mb: 3 }}>Gestión de Ventas</Typography>
 
-            <List>
-                {productosFiltrados.map((producto, index) => (
-                    <ListItem key={index}>
-                        <ListItemText
-                            primary={producto.nombre}
-                            secondary={`Stock: ${producto.stock}, Precio Venta: $${producto.precioVenta}`}
-                        />
-                        <TextField
-                            sx={{ mr: 2 }}
-                            type="number"
-                            label="Cantidad"
-                            value={cantidadVenta[producto.nombre] || ''}
-                            onChange={(e) => setCantidadVenta({ ...cantidadVenta, [producto.nombre]: e.target.value })}
-                        />
-                        <Button onClick={() => agregarItem(producto)} variant="contained" color="primary">Agregar</Button>
-                    </ListItem>
-                ))}
-            </List>
-<Box sx={{ml:3}}>
-            <Typography variant="h6" sx={{ mt: 3 }}>Productos seleccionados:</Typography>
-            <List>
-                {itemsSeleccionados.map((item, index) => (
-                    <ListItem key={index}>
-                        <ListItemText
-                            primary={item.nombre}
-                            secondary={`Cantidad: ${item.cantidad}, Total: $${(item.cantidad * item.precioVenta).toFixed(2)}`}
-                        />
-                    </ListItem>
-                ))}
-            </List>
-<Box sx={{ml:120}}>
-            <Typography variant="h6" sx={{ mt: 2 }}>
-                Subtotal: ${subtotal.toFixed(2)}
-            </Typography>
+                <TextField
+                    label="Buscar producto"
+                    fullWidth
+                    variant="outlined"
+                    sx={{ mb: 2 }}
+                    value={filtro}
+                    onChange={(e) => setFiltro(e.target.value)}
+                />
+
+                <List sx={{ padding: 0 }}>
+                    {productosFiltrados.map((producto, index) => (
+                        <ListItem key={index} sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, mb: 2 }}>
+                            <ListItemText
+                                primary={producto.nombre}
+                                secondary={`Stock: ${producto.stock}, Precio Venta: $${producto.precioVenta}`}
+                                sx={{ mb: { xs: 1, sm: 0 }, mr: { sm: 2 } }}
+                            />
+                            <TextField
+                                sx={{ mb: { xs: 2, sm: 0 }, mr: 2 }}
+                                type="number"
+                                label="Cantidad"
+                                value={cantidadVenta[producto.nombre] || ''}
+                                onChange={(e) => setCantidadVenta({ ...cantidadVenta, [producto.nombre]: e.target.value })}
+                            />
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => agregarItem(producto)}
+                            >
+                                Agregar
+                            </Button>
+                        </ListItem>
+                    ))}
+                </List>
+
+                <Box sx={{ mt: 3 }}>
+                    <Typography variant="h6" sx={{ mb: 2 }}>Productos seleccionados:</Typography>
+                    <List>
+                        {itemsSeleccionados.map((item, index) => (
+                            <ListItem key={index}>
+                                <ListItemText
+                                    primary={item.nombre}
+                                    secondary={`Cantidad: ${item.cantidad}, Total: $${(item.cantidad * item.precioVenta).toFixed(2)}`}
+                                />
+                            </ListItem>
+                        ))}
+                    </List>
+
+                    <Typography variant="h6" sx={{ mt: 2 }}>
+                        Subtotal: ${subtotal.toFixed(2)}
+                    </Typography>
+                </Box>
+
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mt: 3, mb:4 }}>
+                    <Button
+                        variant="contained"
+                        color="success"
+                        onClick={confirmarVenta}
+                    >
+                        Confirmar Venta
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={manejarClick}
+                    >
+                        Imprimir Ticket
+                    </Button>
                 </Box>
             </Box>
-            <Box sx={{ display: 'flex', gap: 2, mt: 3,ml:50, mb:5 }}>
-                <Button
-                    variant="contained"
-                    color="success"
-                    onClick={confirmarVenta}
-                >
-                    Confirmar Venta
-                </Button>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={imprimirTicket}
-                >
-                    Imprimir Ticket
-                </Button>
-            </Box>
-    
+
             <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={() => setSnackbarOpen(false)} message={mensaje} />
 
             <Button
@@ -221,7 +236,7 @@ function Ventas() {
             >
                 Volver
             </Button>
-        </Box>
+        </Container>
     );
 }
 

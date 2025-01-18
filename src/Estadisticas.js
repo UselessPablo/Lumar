@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Typography, Button, List, ListItem, ListItemText, Divider } from '@mui/material';
 import { ref, get } from 'firebase/database';
 import { db } from './firebaseConfig';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,8 @@ function Estadisticas() {
     const [totalVentasDiarias, setTotalVentasDiarias] = useState(0);
     const [totalVentasMensuales, setTotalVentasMensuales] = useState(0);
     const [acumuladoHoy, setAcumuladoHoy] = useState(0);
+    const [detalleProductos, setDetalleProductos] = useState([]);
+
     const fechaActual = new Date();
     const mesActual = fechaActual.toISOString().slice(0, 7); // 'YYYY-MM'
     const fechaHoy = fechaActual.toISOString().split('T')[0]; // 'YYYY-MM-DD'
@@ -21,6 +23,7 @@ function Estadisticas() {
             const ventasSnapshot = await get(ventasRef);
             if (ventasSnapshot.exists()) {
                 const ventas = Object.values(ventasSnapshot.val());
+                console.log("Ventas descargadas:", ventas);
 
                 // Filtrar y calcular ventas del día
                 const ventasDelDia = ventas.filter((venta) => venta.fecha === fechaHoy);
@@ -31,6 +34,16 @@ function Estadisticas() {
                 const ventasHastaHoy = ventas.filter((venta) => venta.fecha <= fechaHoy);
                 const totalHastaHoy = ventasHastaHoy.reduce((total, venta) => total + venta.totalVenta, 0);
                 setAcumuladoHoy(totalHastaHoy);
+
+                // Generar detalle de productos vendidos
+                const productosVendidos = ventas.map((venta) => ({
+                    nombre: venta.producto,
+                    cantidad: venta.cantidad,
+                    total: venta.totalVenta,
+                }));
+                setDetalleProductos(productosVendidos);
+            } else {
+                console.log("No se encontraron ventas en la base de datos.");
             }
 
             // Obtener acumulado mensual
@@ -43,13 +56,29 @@ function Estadisticas() {
         cargarEstadisticas();
     }, [mesActual, fechaHoy]);
 
+
     return (
-        <Box sx={{ mt: 4 }}>
-            <Typography textAlign='center' variant="h4" sx={{ mb: 3,mt:3 }}>Estadísticas de Ventas</Typography>
-            <Typography textAlign='right' sx={{mr:4,mt:2}} variant="h6">Fecha: {fechaHoy}</Typography>
-            <Typography sx={{mt:5, ml:2}} variant="h6">Total ventas diarias: ${totalVentasDiarias.toFixed(2)}</Typography>
-            <Typography sx={{ mt: 1, ml: 3 }} variant="h6">Acumulado mensual: ${totalVentasMensuales.toFixed(2)}</Typography>
-            <Typography sx={{ mt: 1, ml: 4 }} variant="h6">Acumulado hasta hoy: ${acumuladoHoy.toFixed(2)}</Typography>
+        <Box sx={{ mt: 4, paddingX: { xs: 2, sm: 4 }, maxWidth: '100%' }}>
+            <Typography textAlign='center' variant="h4" sx={{ mb: 3, mt: 3 }}>Estadísticas de Ventas</Typography>
+            <Typography textAlign='right' sx={{ mr: { xs: 2, sm: 4 }, mt: 2 }} variant="h6">Fecha: {fechaHoy}</Typography>
+            <Typography sx={{ mt: 5, ml: { xs: 1, sm: 2 } }} variant="h6">Total ventas diarias: ${totalVentasDiarias.toFixed(2)}</Typography>
+            <Typography sx={{ mt: 1, ml: { xs: 1, sm: 3 } }} variant="h6">Acumulado mensual: ${totalVentasMensuales.toFixed(2)}</Typography>
+            <Typography sx={{ mt: 1, ml: { xs: 1, sm: 4 } }} variant="h6">Acumulado hasta hoy: ${acumuladoHoy.toFixed(2)}</Typography>
+
+            <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>Detalle de Productos Vendidos</Typography>
+            <List>
+                {detalleProductos.map((producto, index) => (
+                    <React.Fragment key={index}>
+                        <ListItem>
+                            <ListItemText
+                                primary={producto.nombre}
+                                secondary={`Cantidad: ${producto.cantidad} | Total: $${producto.total.toFixed(2)}`}
+                            />
+                        </ListItem>
+                        {index < detalleProductos.length - 1 && <Divider />}
+                    </React.Fragment>
+                ))}
+            </List>
 
             <Button
                 variant="contained"
@@ -57,8 +86,8 @@ function Estadisticas() {
                 onClick={() => navigate(-1)} // Volver a la página anterior
                 sx={{
                     position: 'fixed',
-                    bottom: 16,
-                    right: 16,
+                    bottom: { xs: 16, sm: 24 },
+                    right: { xs: 16, sm: 24 },
                 }}
             >
                 Volver
@@ -68,5 +97,4 @@ function Estadisticas() {
 }
 
 export default Estadisticas;
-
 
