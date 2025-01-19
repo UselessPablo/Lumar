@@ -3,6 +3,7 @@ import { Box, Typography, TextField, Button, List, ListItem, ListItemText, Snack
 import { ref, get, set, push } from 'firebase/database';
 import { db } from './firebaseConfig';
 import { useNavigate } from 'react-router-dom';
+import lumarfoto from './lumar.png';
 
 function Ventas() {
     const [productos, setProductos] = useState([]);
@@ -148,8 +149,18 @@ function Ventas() {
     return (
         <Container maxWidth='lg'>
             <Box sx={{ mt: 4 }}>
-                <Typography variant="h4" textAlign="center" sx={{ mb: 3 }}>Lumar</Typography>
-                <Typography variant="h5" textAlign="center" sx={{ mb: 3 }}>Gestión de Ventas</Typography>
+    <Box
+          component="img"
+          src={lumarfoto} // O usa "/images/mi-imagen.jpg" si está en public
+          alt="Descripción de la imagen"
+          sx={{
+            width: '15%', // Ajusta el tamaño
+            maxWidth: 400, // Máximo ancho
+            borderRadius: '8px', // Bordes redondeados
+            // Sombra de Material-UI
+          }}
+        />
+                <Typography variant="h5" textAlign="center" sx={{ mb: 3 }}> Ventas</Typography>
 
                 <TextField
                     label="Buscar producto"
@@ -174,6 +185,11 @@ function Ventas() {
                                 label="Cantidad"
                                 value={cantidadVenta[producto.nombre] || ''}
                                 onChange={(e) => setCantidadVenta({ ...cantidadVenta, [producto.nombre]: e.target.value })}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        agregarItem(producto);
+                                    }
+                                }}
                             />
                             <Button
                                 variant="contained"
@@ -192,15 +208,15 @@ function Ventas() {
                         {itemsSeleccionados.map((item, index) => (
                             <ListItem key={index}>
                                 <ListItemText
-                                    primary={item.nombre}
+                                    primary={item.nombre} sx={{color:'darkGreen', fontWeight:'bold'}}
                                     secondary={`Cantidad: ${item.cantidad}, Total: $${(item.cantidad * item.precioVenta).toFixed(2)}`}
                                 />
                             </ListItem>
                         ))}
                     </List>
 
-                    <Typography variant="h6" sx={{ mt: 2 }}>
-                        Subtotal: ${subtotal.toFixed(2)}
+                    <Typography variant="h6" sx={{ mt: 2, color:'red' }}>
+                        Subtotal: ${subtotal.toFixed(2)} 
                     </Typography>
                 </Box>
 

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Box, Typography, Container, Button, TextField, Snackbar, Grid, Avatar } from '@mui/material';
+import { Box, Typography, Container, Button, TextField, Snackbar, Grid, Avatar, Image } from '@mui/material';
 import Stock from './Stock';
 import { useNavigate } from 'react-router-dom';
 import foto from './/IMG_20221031_211846.jpg'
+import lumarfoto from './/lumar.png'
 
 function App() {
   const [usuario, setUsuario] = useState('');
@@ -62,8 +63,18 @@ function App() {
   return (
     <Container maxWidth="lg">
       <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', mb: 10, mt: 5 }}>
-        <Typography variant="h2" textAlign="left" sx={{ mb: 3 }}>Lumar</Typography>
-
+         
+        <Box
+          component="img"
+          src={lumarfoto} // O usa "/images/mi-imagen.jpg" si está en public
+          alt="Descripción de la imagen"
+          sx={{
+            width: '15%', // Ajusta el tamaño
+            maxWidth: 400, // Máximo ancho
+            borderRadius: '8px', // Bordes redondeados
+            // Sombra de Material-UI
+          }}
+        />
         {/* Sección de login */}
         <Grid container spacing={2} justifyContent="center">
           {!usuarioLogueado ? (
@@ -92,7 +103,8 @@ function App() {
                 onClick={handleLogin}
                 variant="contained"
                 color="primary"
-                fullWidth
+                sx={{ borderRadius: 5 }}
+fullWidth
               >
                 Iniciar sesión
               </Button>
@@ -114,7 +126,7 @@ function App() {
                 variant="contained"
                 color="warning"
                 fullWidth
-                sx={{ mb: 2 }}
+                sx={{ mb: 2, borderRadius:7 }}
               >
                 Cerrar sesión
               </Button>
@@ -124,7 +136,7 @@ function App() {
                 variant="contained"
                 color="secondary"
                 fullWidth
-                sx={{ mb: 2 }}
+                sx={{ mb: 2, borderRadius:7 }}
               >
                 Ir a Estadísticas
               </Button>
@@ -133,16 +145,17 @@ function App() {
         </Grid>
 
         {/* Botón de acceso a ventas */}
+       <Box sx={{ display:'flex', flexDirection:'row', justifyContent:'center'}}>
         <Button
           onClick={goToVentas}
           variant="contained"
           color="success"
-          fullWidth
-          sx={{ mt: 2 }}
+          
+          sx={{ borderRadius: 5, mt: 2, width:300}}
         >
           Ir a Ventas
         </Button>
-
+        </Box>
         {/* Si el usuario está logueado, mostrar el acceso a Stock */}
         {usuarioLogueado && (
           <Box sx={{ mt: 4 }}>
