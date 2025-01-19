@@ -1,14 +1,15 @@
 {
   "files": {
     "main.css": "/Lumar/static/css/main.e6c13ad2.css",
-    "main.js": "/Lumar/static/js/main.32d0dbb2.js",
+    "main.js": "/Lumar/static/js/main.00096bbb.js",
     "static/media/IMG_20221031_211846.jpg": "/Lumar/static/media/IMG_20221031_211846.fd81ca144d0763cf53f5.jpg",
+    "static/media/lumar.png": "/Lumar/static/media/lumar.82d0d1482b52d9515888.png",
     "index.html": "/Lumar/index.html",
     "main.e6c13ad2.css.map": "/Lumar/static/css/main.e6c13ad2.css.map",
-    "main.32d0dbb2.js.map": "/Lumar/static/js/main.32d0dbb2.js.map"
+    "main.00096bbb.js.map": "/Lumar/static/js/main.00096bbb.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.32d0dbb2.js"
+    "static/js/main.00096bbb.js"
   ]
 }
